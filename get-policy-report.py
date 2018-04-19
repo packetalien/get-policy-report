@@ -48,12 +48,11 @@ def getfwipfqdn():
             fwipraw = raw_input("Please enter an IP or FQDN: ")
             ipr = re.match(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", fwipraw)
             fqdnr = re.match(r"(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63}$)", fwipraw)
-            print("You entered %s\n" % fwipraw)
             if ipr:
-                print("True")
+                print("IPv4 Success")
                 break
             elif fqdnr:
-                print("True")
+                print("FQDN Success")
                 break
             else:
                 print("There was something wrong with your entry. Please try again.\n")
@@ -67,13 +66,11 @@ def getuname():
         try:
             username = raw_input("Please enter a user name (note, must have API access): ")
             usernamer = re.match(r"^[a-z0-9_-]{3,24}$", username) # 3 - 24 characters {3,24}
-            print("You entered %s" % username)
             if usernamer:
-                print("True")
+                print("Success")
                 break
             else:
                 print("There was something wrong with your entry. Please try again.\n")
-            print("You entered %s\n" % username)
         except:
             print("There was some kind of problem entering your user name. Please try again.\n")
     return username
@@ -83,9 +80,8 @@ def getpass():
         try:
             password = raw_input("Please enter your password: ")
             passwordr = re.match(r"^.{5,50}$",password) # simple validate PANOS has no password characterset restrictions
-            print("You entered %s\n" % password)
             if passwordr:
-                print("True")
+                print("Success")
                 break
             else:
                 print("There was something wrong with your entry. Please try again.\n")
@@ -118,18 +114,21 @@ def getpolicy(passkey,fwip):
         xpath = "/config/shared/pre-rulebase/security"
         call = "https://%s/api/?type=%s&action=%s&xpath=%s&key=%s" % (fwipl, type, action, xpath, fwkey)
         r = requests.get(call, verify=False)
-        #tree = ET.fromstring(r.text)
-        return r.text
+        with open('policydump.xml', 'w') as f:
+            f.write(r.text)
+            f.close()
     except requests.exceptions.ConnectionError as e:
-        print("There was a problem in getting your policies. \n Please vent frustrations in a safe manner and throw a candy bar at the wall! \n If this is helpful the error was captured as: " + e)
+        print("There was a problem in getting your objects. \n Please vent frustrations in a safe manner and throw a candy bar at the wall! \n If this is helpful the error was captured as: " + e)
 
 def main():
     try:
         fwip = getfwipfqdn()
         mainkey = getkey(fwip)
         results = getpolicy(mainkey,fwip)
-        print(results)
-        print(r.text)
+        print("\npolicydump.xml was created from" + " " + fwip + " Successfully\n")
+        print("========================Please Note================================\n")
+        print("                  This file is a raw dump!\n")
+        print("========================Please Note================================")
     except:
         print("Something happened and your output didn't.")
 
